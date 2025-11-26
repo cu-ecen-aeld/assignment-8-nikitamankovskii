@@ -1,0 +1,39 @@
+#!/bin/sh
+case "$1" in
+  start)
+    echo "Loading aesdchar"
+    insmod /lib/modules/$(uname -r)/extra/aesdchar.ko || modprobe aesdchar
+
+    if [ ! -e /dev/aesdchar ]; then
+        dev=$(awk '$2=="aesdchar"{print $1}' /proc/devices)
+        if [ -n "$dev" ]; then
+            echo "Creating /dev/aesdchar"
+            mknod /dev/aesdchar c "$dev" 0
+            chmod 666 /dev/aesdchar
+        else
+            echo "Could not find aesdchar"
+        fi
+    fi
+
+    echo "aesdchar loaded."
+    ;;
+
+  stop)
+    echo "Unloading aesdchar"
+    rmmod aesdchar 
+    echo "aesdchar unloaded."
+    ;;
+
+  restart)
+    $0 stop
+    $0 start
+    ;;
+
+  *)
+    echo "Usage: $0 {start|stop|restart}"
+    exit 1
+    ;;
+esac
+
+exit 0
+
